@@ -1,0 +1,131 @@
+# Copyright (C) 2016  Kouhei Sutou <kou@clear-code.com>
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+
+module GroongaSchema
+  class Table
+    attr_reader :name
+    attr_accessor :type
+    attr_accessor :flags
+    attr_accessor :key_type
+    attr_accessor :value_type
+    attr_accessor :default_tokenizer
+    attr_accessor :normalizer
+    attr_accessor :token_filters
+    def initialize(name)
+      @name = name
+      @type = :no_key
+      @flags = []
+      @key_type = nil
+      @value_type = nil
+      @default_tokenizer = nil
+      @normalizer = nil
+      @token_filters = []
+    end
+
+    def apply_command(command)
+      applier = CommandApplier.new(self, command)
+      applier.apply
+    end
+
+    class CommandApplier
+      def initialize(table, command)
+        @table = table
+        @command = command
+      end
+
+      def apply
+        apply_flags
+        apply_key_type
+        apply_value_type
+        apply_default_tokenizer
+        apply_normalizer
+        apply_token_filters
+      end
+
+      private
+      def apply_flags
+        @type = :no_key
+        @flags = []
+        @command.flags.each do |flag|
+          parse_flag(flag)
+        end
+
+        @table.type = @type
+        @table.flags = @flags
+      end
+
+      def parse_flag(flag)
+        case flag
+        when "TABLE_NO_KEY"
+          @type = :no_key
+        when "TABLE_HASH_KEY"
+          @type = :hash_key
+        when "TABLE_PAT_KEY"
+          @type = :pat_key
+        when "TABLE_DAT_KEY"
+          @type = :dat_key
+        else
+          @flags << flag
+        end
+      end
+
+      def apply_key_type
+        case @type
+        when :no_key
+          @table.key_type = nil
+        else
+          @table.key_type = @command.key_type || "ShortText"
+        end
+      end
+
+      def apply_value_type
+        case @type
+        when :dat_key
+          @table.value_type = nil
+        else
+          @table.value_type = @command.value_type
+        end
+      end
+
+      def apply_default_tokenizer
+        case @type
+        when :no_key
+          @table.default_tokenizer = nil
+        else
+          @table.default_tokenizer = @command.default_tokenizer
+        end
+      end
+
+      def apply_normalizer
+        case @type
+        when :no_key
+          @table.normalizer = nil
+        else
+          @table.normalizer = @command.normalizer
+        end
+      end
+
+      def apply_token_filters
+        case @type
+        when :no_key
+          @table.token_filters = []
+        else
+          @table.token_filters = @command.token_filters
+        end
+      end
+    end
+  end
+end
