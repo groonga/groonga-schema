@@ -46,5 +46,22 @@ class DifferTest < Test::Unit::TestCase
       actual.added_tables["Words"] = @to.tables["Words"]
       assert_equal(actual, @differ.diff)
     end
+
+    test "table - remove" do
+      arguments = {
+        "name"              => "Words",
+        "flags"             => "TABLE_PAT_KEY",
+        "key_type"          => "ShortText",
+        "default_tokenizer" => "TokenBigram",
+        "normalizer"        => "NormalizerAuto",
+        "token_filters"     => "TokenStem|TokenStopWord",
+      }
+      command = table_create(arguments)
+      @from.apply_command(command)
+
+      actual = GroongaSchema::Diff.new
+      actual.removed_tables["Words"] = @from.tables["Words"]
+      assert_equal(actual, @differ.diff)
+    end
   end
 end
