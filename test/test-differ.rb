@@ -50,7 +50,7 @@ class DifferTest < Test::Unit::TestCase
       assert_equal(expected, @differ.diff)
     end
 
-    test "table - add" do
+    test "table - add - without columns" do
       arguments = {
         "name"              => "Words",
         "flags"             => "TABLE_PAT_KEY",
@@ -66,7 +66,34 @@ class DifferTest < Test::Unit::TestCase
       assert_equal(expected, @differ.diff)
     end
 
-    test "table - remove" do
+    test "table - add - with columns" do
+      table_create_arguments = {
+        "name"              => "Words",
+        "flags"             => "TABLE_PAT_KEY",
+        "key_type"          => "ShortText",
+        "default_tokenizer" => "TokenBigram",
+        "normalizer"        => "NormalizerAuto",
+        "token_filters"     => "TokenStem|TokenStopWord",
+      }
+      @to.apply_command(table_create(table_create_arguments))
+      column_create_arguments = {
+        "table"  => "Words",
+        "name"   => "entries_text",
+        "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
+        "type"   => "Entries",
+        "source" => "title, content",
+      }
+      @to.apply_command(column_create(column_create_arguments))
+
+      expected = GroongaSchema::Diff.new
+      expected.added_tables["Words"] = @to.tables["Words"]
+      expected.added_columns["Words"] = {
+        "entries_text" => @to.columns["Words"]["entries_text"],
+      }
+      assert_equal(expected, @differ.diff)
+    end
+
+    test "table - remove - without columns" do
       arguments = {
         "name"              => "Words",
         "flags"             => "TABLE_PAT_KEY",
@@ -76,6 +103,30 @@ class DifferTest < Test::Unit::TestCase
         "token_filters"     => "TokenStem|TokenStopWord",
       }
       @from.apply_command(table_create(arguments))
+
+      expected = GroongaSchema::Diff.new
+      expected.removed_tables["Words"] = @from.tables["Words"]
+      assert_equal(expected, @differ.diff)
+    end
+
+    test "table - remove - with columns" do
+      table_create_arguments = {
+        "name"              => "Words",
+        "flags"             => "TABLE_PAT_KEY",
+        "key_type"          => "ShortText",
+        "default_tokenizer" => "TokenBigram",
+        "normalizer"        => "NormalizerAuto",
+        "token_filters"     => "TokenStem|TokenStopWord",
+      }
+      @from.apply_command(table_create(table_create_arguments))
+      column_create_arguments = {
+        "table"  => "Words",
+        "name"   => "entries_text",
+        "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
+        "type"   => "Entries",
+        "source" => "title, content",
+      }
+      @from.apply_command(column_create(column_create_arguments))
 
       expected = GroongaSchema::Diff.new
       expected.removed_tables["Words"] = @from.tables["Words"]
@@ -118,14 +169,25 @@ class DifferTest < Test::Unit::TestCase
     end
 
     test "column - remove" do
-      arguments = {
+      table_create_arguments = {
+        "name"              => "Words",
+        "flags"             => "TABLE_PAT_KEY",
+        "key_type"          => "ShortText",
+        "default_tokenizer" => "TokenBigram",
+        "normalizer"        => "NormalizerAuto",
+        "token_filters"     => "TokenStem|TokenStopWord",
+      }
+      @from.apply_command(table_create(table_create_arguments))
+      @to.apply_command(table_create(table_create_arguments))
+
+      column_create_arguments = {
         "table"  => "Words",
         "name"   => "entries_text",
         "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
         "type"   => "Entries",
         "source" => "title, content",
       }
-      @from.apply_command(column_create(arguments))
+      @from.apply_command(column_create(column_create_arguments))
 
       expected = GroongaSchema::Diff.new
       expected.removed_columns["Words"] = {
@@ -135,16 +197,28 @@ class DifferTest < Test::Unit::TestCase
     end
 
     test "column - change" do
-      from_arguments = {
+      table_create_arguments = {
+        "name"              => "Words",
+        "flags"             => "TABLE_PAT_KEY",
+        "key_type"          => "ShortText",
+        "default_tokenizer" => "TokenBigram",
+        "normalizer"        => "NormalizerAuto",
+        "token_filters"     => "TokenStem|TokenStopWord",
+      }
+      @from.apply_command(table_create(table_create_arguments))
+      @to.apply_command(table_create(table_create_arguments))
+
+      from_column_create_arguments = {
         "table"  => "Words",
         "name"   => "entries_text",
         "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
         "type"   => "Entries",
         "source" => "title, content",
       }
-      to_arguments = from_arguments.merge("source" => "title")
-      @from.apply_command(column_create(from_arguments))
-      @to.apply_command(column_create(to_arguments))
+      to_column_create_arguments =
+        from_column_create_arguments.merge("source" => "title")
+      @from.apply_command(column_create(from_column_create_arguments))
+      @to.apply_command(column_create(to_column_create_arguments))
 
       expected = GroongaSchema::Diff.new
       expected.changed_columns["Words"] = {

@@ -62,7 +62,9 @@ module GroongaSchema
 
     def diff_columns(diff)
       @from.columns.each do |table_name, from_columns|
-        to_columns = @to.columns[table_name] || {}
+        to_columns = @to.columns[table_name]
+        next if to_columns.nil?
+
         from_columns.each do |name, from_column|
           to_column = to_columns[name]
           if to_column.nil?

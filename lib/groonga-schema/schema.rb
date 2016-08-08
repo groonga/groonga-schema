@@ -41,6 +41,7 @@ module GroongaSchema
         table = Table.new(command.name)
         table.apply_command(command)
         @tables[table.name] = table
+        @columns[table.name] ||= {}
       when "column_create"
         column = Column.new(command.table, command.name)
         column.apply_command(command)
