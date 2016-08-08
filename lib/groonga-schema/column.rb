@@ -36,6 +36,17 @@ module GroongaSchema
       applier.apply
     end
 
+    def ==(other)
+      return false unless other.is_a?(self.class)
+
+      @table_name == other.table_name and
+        @name == other.name and
+        @type == other.type and
+        @flags.sort == other.flags.sort and
+        @value_type == other.value_type and
+        @sources == other.sources
+    end
+
     class CommandApplier
       def initialize(column, command)
         @column = column

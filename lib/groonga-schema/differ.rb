@@ -61,6 +61,30 @@ module GroongaSchema
     end
 
     def diff_columns(diff)
+      @from.columns.each do |table_name, from_columns|
+        to_columns = @to.columns[table_name] || {}
+        from_columns.each do |name, from_column|
+          to_column = to_columns[name]
+          if to_column.nil?
+            diff.removed_columns[table_name] ||= {}
+            diff.removed_columns[table_name][name] = from_column
+          elsif from_column != to_column
+            diff.changed_columns[table_name] ||= {}
+            diff.changed_columns[table_name][name] = to_column
+          end
+        end
+      end
+
+      @to.columns.each do |table_name, to_columns|
+        from_columns = @from.columns[table_name] || {}
+        to_columns.each do |name, to_column|
+          from_column = from_columns[name]
+          if from_column.nil?
+            diff.added_columns[table_name] ||= {}
+            diff.added_columns[table_name][name] = to_column
+          end
+        end
+      end
     end
   end
 end
