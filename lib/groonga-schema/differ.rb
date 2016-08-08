@@ -18,9 +18,11 @@ require "groonga-schema/diff"
 
 module GroongaSchema
   class Differ
-    def initialize(schema1, schema2)
-      @schema1 = schema1
-      @schema2 = schema2
+    # @param from [Schema] The original schema.
+    # @param to [Schema] The changed schema.
+    def initialize(from, to)
+      @from = from
+      @to = to
     end
 
     def diff
@@ -33,11 +35,27 @@ module GroongaSchema
 
     private
     def diff_plugins(diff)
-      diff.removed_plugins += @schema1.plugins - @schema2.plugins
-      diff.added_plugins   += @schema2.plugins - @schema1.plugins
+      diff.removed_plugins.concat(@from.plugins - @to.plugins)
+      diff.added_plugins.concat(@to.plugins - @from.plugins)
     end
 
     def diff_tables(diff)
+      from_tables = @from.tables
+      to_tables = @to.tables
+
+      from_tables.each do |name, from_table|
+        to_table = to_tables[name]
+        if to_table.nil?
+          diff.removed_tables[name] = from_table
+        end
+      end
+
+      to_tables.each do |name, to_table|
+        from_table = from_tables[name]
+        if from_table.nil?
+          diff.added_tables[name] = to_table
+        end
+      end
     end
 
     def diff_columns(diff)

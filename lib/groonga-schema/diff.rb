@@ -38,5 +38,18 @@ module GroongaSchema
       @added_columns = {}
       @renamed_columns = {}
     end
+
+    def ==(other)
+      return false unless other.is_a?(self.class)
+
+      @removed_plugins == other.removed_plugins and
+        @added_plugins == other.added_plugins and
+        @removed_tables == other.removed_tables and
+        @added_tables == other.added_tables and
+        @renamed_tables == other.renamed_tables and
+        @removed_columns == other.removed_columns and
+        @added_columns == other.added_columns and
+        @renamed_columns == other.renamed_columns
+    end
   end
 end
