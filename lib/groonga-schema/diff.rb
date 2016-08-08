@@ -62,5 +62,43 @@ module GroongaSchema
         @added_columns.empty? and
         @changed_columns.empty?
     end
+
+    def to_groonga_command_list
+      converter = GroongaCommandListConverter.new(self)
+      converter.convert
+    end
+
+    class GroongaCommandListConverter
+      def initialize(diff)
+        @diff = diff
+        @buffer = ""
+      end
+
+      def convert
+        @buffer.clear
+        convert_added_plugins
+        convert_removed_plugins
+        @buffer
+      end
+
+      private
+      def convert_added_plugins
+        return if @diff.added_plugins.empty?
+
+        @buffer << "\n" unless @buffer.empty?
+        @diff.added_plugins.sort_by(&:name).each do |plugin|
+          @buffer << "plugin_register #{plugin.name}\n"
+        end
+      end
+
+      def convert_removed_plugins
+        return if @diff.removed_plugins.empty?
+
+        @buffer << "\n" unless @buffer.empty?
+        @diff.removed_plugins.sort_by(&:name).each do |plugin|
+          @buffer << "plugin_unregister #{plugin.name}\n"
+        end
+      end
+    end
   end
 end
