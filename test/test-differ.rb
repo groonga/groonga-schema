@@ -165,58 +165,58 @@ class DifferTest < Test::Unit::TestCase
         @to.apply_command(table_create(arguments))
       end
 
-    test "add" do
-      arguments = {
-        "table"  => "Words",
-        "name"   => "entries_text",
-        "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
-        "type"   => "Entries",
-        "source" => "title, content",
-      }
-      @to.apply_command(column_create(arguments))
+      test "add" do
+        arguments = {
+          "table"  => "Words",
+          "name"   => "entries_text",
+          "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
+          "type"   => "Entries",
+          "source" => "title, content",
+        }
+        @to.apply_command(column_create(arguments))
 
-      expected = GroongaSchema::Diff.new
-      expected.added_columns["Words"] = {
-        "entries_text" => @to.columns["Words"]["entries_text"],
-      }
-      assert_equal(expected, @differ.diff)
-    end
+        expected = GroongaSchema::Diff.new
+        expected.added_columns["Words"] = {
+          "entries_text" => @to.columns["Words"]["entries_text"],
+        }
+        assert_equal(expected, @differ.diff)
+      end
 
-    test "remove" do
-      arguments = {
-        "table"  => "Words",
-        "name"   => "entries_text",
-        "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
-        "type"   => "Entries",
-        "source" => "title, content",
-      }
-      @from.apply_command(column_create(arguments))
+      test "remove" do
+        arguments = {
+          "table"  => "Words",
+          "name"   => "entries_text",
+          "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
+          "type"   => "Entries",
+          "source" => "title, content",
+        }
+        @from.apply_command(column_create(arguments))
 
-      expected = GroongaSchema::Diff.new
-      expected.removed_columns["Words"] = {
-        "entries_text" => @from.columns["Words"]["entries_text"],
-      }
-      assert_equal(expected, @differ.diff)
-    end
+        expected = GroongaSchema::Diff.new
+        expected.removed_columns["Words"] = {
+          "entries_text" => @from.columns["Words"]["entries_text"],
+        }
+        assert_equal(expected, @differ.diff)
+      end
 
-    test "change" do
-      from_arguments = {
-        "table"  => "Words",
-        "name"   => "entries_text",
-        "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
-        "type"   => "Entries",
-        "source" => "title, content",
-      }
-      to_arguments = from_arguments.merge("source" => "title")
-      @from.apply_command(column_create(from_arguments))
-      @to.apply_command(column_create(to_arguments))
+      test "change" do
+        from_arguments = {
+          "table"  => "Words",
+          "name"   => "entries_text",
+          "flags"  => "COLUMN_INDEX|WITH_POSITION|WITH_SECTION|INDEX_TINY",
+          "type"   => "Entries",
+          "source" => "title, content",
+        }
+        to_arguments = from_arguments.merge("source" => "title")
+        @from.apply_command(column_create(from_arguments))
+        @to.apply_command(column_create(to_arguments))
 
-      expected = GroongaSchema::Diff.new
-      expected.changed_columns["Words"] = {
-        "entries_text" => @to.columns["Words"]["entries_text"],
-      }
-      assert_equal(expected, @differ.diff)
-    end
+        expected = GroongaSchema::Diff.new
+        expected.changed_columns["Words"] = {
+          "entries_text" => @to.columns["Words"]["entries_text"],
+        }
+        assert_equal(expected, @differ.diff)
+      end
     end
   end
 end
