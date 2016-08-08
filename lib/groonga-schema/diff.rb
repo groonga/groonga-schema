@@ -51,5 +51,16 @@ module GroongaSchema
         @added_columns == other.added_columns and
         @changed_columns == other.changed_columns
     end
+
+    def same?
+      @removed_plugins.empty? and
+        @added_plugins.empty? and
+        @removed_tables.empty? and
+        @added_tables.empty? and
+        @changed_tables.empty? and
+        @removed_columns.empty? and
+        @added_columns.empty? and
+        @changed_columns.empty?
+    end
   end
 end
