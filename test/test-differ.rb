@@ -21,6 +21,10 @@ class DifferTest < Test::Unit::TestCase
     @differ = GroongaSchema::Differ.new(@from, @to)
   end
 
+  def plugin_register(arguments)
+    Groonga::Command::PluginRegister.new(arguments)
+  end
+
   def table_create(arguments)
     Groonga::Command::TableCreate.new(arguments)
   end
@@ -30,6 +34,22 @@ class DifferTest < Test::Unit::TestCase
   end
 
   sub_test_case "#diff" do
+    test "plugin - add" do
+      @to.apply_command(plugin_register("name" => "token_filters/stem"))
+
+      expected = GroongaSchema::Diff.new
+      expected.added_plugins.concat(@to.plugins)
+      assert_equal(expected, @differ.diff)
+    end
+
+    test "plugin - remove" do
+      @from.apply_command(plugin_register("name" => "token_filters/stem"))
+
+      expected = GroongaSchema::Diff.new
+      expected.removed_plugins.concat(@from.plugins)
+      assert_equal(expected, @differ.diff)
+    end
+
     test "table - add" do
       arguments = {
         "name"              => "Words",
