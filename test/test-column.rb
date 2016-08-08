@@ -16,7 +16,7 @@
 
 class ColumnTest < Test::Unit::TestCase
   def column_create(arguments)
-    Groonga::Command::ColumnCreate.new("column_create", arguments)
+    Groonga::Command::ColumnCreate.new(arguments)
   end
 
   sub_test_case "#apply_command" do

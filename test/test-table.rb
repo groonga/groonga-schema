@@ -16,7 +16,7 @@
 
 class TableTest < Test::Unit::TestCase
   def table_create(arguments)
-    Groonga::Command::TableCreate.new("table_create", arguments)
+    Groonga::Command::TableCreate.new(arguments)
   end
 
   sub_test_case "#apply_command" do
