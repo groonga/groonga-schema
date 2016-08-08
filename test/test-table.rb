@@ -54,4 +54,39 @@ class TableTest < Test::Unit::TestCase
                    })
     end
   end
+
+  sub_test_case "#==" do
+    test "equal" do
+      arguments = {
+        "name"              => "Words",
+        "flags"             => "TABLE_PAT_KEY",
+        "key_type"          => "ShortText",
+        "default_tokenizer" => "TokenBigram",
+        "normalizer"        => "NormalizerAuto",
+        "token_filters"     => "TokenStem|TokenStopWord",
+      }
+      command = table_create(arguments)
+      table1 = GroongaSchema::Table.new("Words")
+      table1.apply_command(command)
+      table2 = GroongaSchema::Table.new("Words")
+      table2.apply_command(command)
+      assert_equal(table1, table2)
+    end
+
+    test "not equal" do
+      arguments = {
+        "name"              => "Words",
+        "flags"             => "TABLE_PAT_KEY",
+        "key_type"          => "ShortText",
+        "default_tokenizer" => "TokenBigram",
+        "normalizer"        => "NormalizerAuto",
+        "token_filters"     => "TokenStem|TokenStopWord",
+      }
+      table1 = GroongaSchema::Table.new("Words1")
+      table1.apply_command(table_create(arguments.merge("name" => "Words1")))
+      table2 = GroongaSchema::Table.new("Words2")
+      table2.apply_command(table_create(arguments.merge("name" => "Words2")))
+      assert_not_equal(table1, table2)
+    end
+  end
 end

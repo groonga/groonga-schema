@@ -40,6 +40,19 @@ module GroongaSchema
       applier.apply
     end
 
+    def ==(other)
+      return false unless other.is_a?(self.class)
+
+      @name == other.name and
+        @type == other.type and
+        @flags.sort == other.flags.sort and
+        @key_type == other.key_type and
+        @value_type == other.value_type and
+        @default_tokenizer == other.default_tokenizer and
+        @normalizer == other.normalizer and
+        @token_filters == other.token_filters
+    end
+
     class CommandApplier
       def initialize(table, command)
         @table = table

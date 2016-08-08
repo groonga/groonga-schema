@@ -47,6 +47,8 @@ module GroongaSchema
         to_table = to_tables[name]
         if to_table.nil?
           diff.removed_tables[name] = from_table
+        elsif from_table != to_table
+          diff.changed_tables[name] = to_table
         end
       end
 

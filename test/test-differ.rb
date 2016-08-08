@@ -39,8 +39,7 @@ class DifferTest < Test::Unit::TestCase
         "normalizer"        => "NormalizerAuto",
         "token_filters"     => "TokenStem|TokenStopWord",
       }
-      command = table_create(arguments)
-      @to.apply_command(command)
+      @to.apply_command(table_create(arguments))
 
       actual = GroongaSchema::Diff.new
       actual.added_tables["Words"] = @to.tables["Words"]
@@ -56,11 +55,28 @@ class DifferTest < Test::Unit::TestCase
         "normalizer"        => "NormalizerAuto",
         "token_filters"     => "TokenStem|TokenStopWord",
       }
-      command = table_create(arguments)
-      @from.apply_command(command)
+      @from.apply_command(table_create(arguments))
 
       actual = GroongaSchema::Diff.new
       actual.removed_tables["Words"] = @from.tables["Words"]
+      assert_equal(actual, @differ.diff)
+    end
+
+    test "table - change" do
+      from_arguments = {
+        "name"              => "Words",
+        "flags"             => "TABLE_PAT_KEY",
+        "key_type"          => "ShortText",
+        "default_tokenizer" => "TokenBigram",
+        "normalizer"        => "NormalizerAuto",
+        "token_filters"     => "TokenStem|TokenStopWord",
+      }
+      to_arguments = from_arguments.merge("default_tokenizer" => "TokenMecab")
+      @from.apply_command(table_create(from_arguments))
+      @to.apply_command(table_create(to_arguments))
+
+      actual = GroongaSchema::Diff.new
+      actual.changed_tables["Words"] = @to.tables["Words"]
       assert_equal(actual, @differ.diff)
     end
   end

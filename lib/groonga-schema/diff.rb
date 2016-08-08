@@ -21,22 +21,22 @@ module GroongaSchema
 
     attr_reader :removed_tables
     attr_reader :added_tables
-    attr_reader :renamed_tables
+    attr_reader :changed_tables
 
     attr_reader :removed_columns
     attr_reader :added_columns
-    attr_reader :renamed_columns
+    attr_reader :changed_columns
     def initialize
       @removed_plugins = []
       @added_plugins = []
 
       @removed_tables = {}
       @added_tables = {}
-      @renamed_tables = {}
+      @changed_tables = {}
 
       @removed_columns = {}
       @added_columns = {}
-      @renamed_columns = {}
+      @changed_columns = {}
     end
 
     def ==(other)
@@ -46,10 +46,10 @@ module GroongaSchema
         @added_plugins == other.added_plugins and
         @removed_tables == other.removed_tables and
         @added_tables == other.added_tables and
-        @renamed_tables == other.renamed_tables and
+        @changed_tables == other.changed_tables and
         @removed_columns == other.removed_columns and
         @added_columns == other.added_columns and
-        @renamed_columns == other.renamed_columns
+        @changed_columns == other.changed_columns
     end
   end
 end
