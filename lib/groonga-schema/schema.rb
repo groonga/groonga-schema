@@ -14,8 +14,9 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-require "groonga-schema/table"
 require "groonga-schema/column"
+require "groonga-schema/plugin"
+require "groonga-schema/table"
 
 module GroongaSchema
   class Schema
@@ -30,6 +31,12 @@ module GroongaSchema
 
     def apply_command(command)
       case command.command_name
+      when "register"
+        plugin = Plugin.new(command.path)
+        @plugins << plugin
+      when "plugin_register"
+        plugin = Plugin.new(command.name)
+        @plugins << plugin
       when "table_create"
         table = Table.new(command.name)
         table.apply_command(command)

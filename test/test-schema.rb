@@ -19,6 +19,14 @@ class SchemaTest < Test::Unit::TestCase
     @schema = GroongaSchema::Schema.new
   end
 
+  def register(arguments)
+    Groonga::Command::Register.new(arguments)
+  end
+
+  def plugin_register(arguments)
+    Groonga::Command::PluginRegister.new(arguments)
+  end
+
   def table_create(arguments)
     Groonga::Command::TableCreate.new(arguments)
   end
@@ -28,6 +36,22 @@ class SchemaTest < Test::Unit::TestCase
   end
 
   sub_test_case "#apply_command" do
+    test "plugin - register" do
+      command = register("path" => "token_filters/stem")
+      @schema.apply_command(command)
+
+      assert_equal(["token_filters/stem"],
+                   @schema.plugins.collect(&:name))
+    end
+
+    test "plugin - plugin_register" do
+      command = plugin_register("name" => "token_filters/stem")
+      @schema.apply_command(command)
+
+      assert_equal(["token_filters/stem"],
+                   @schema.plugins.collect(&:name))
+    end
+
     test "lexicon" do
       arguments = {
         "name"              => "Words",
