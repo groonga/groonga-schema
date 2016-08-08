@@ -29,13 +29,13 @@ module GroongaSchema
     end
 
     def apply_command(command)
-      case command.name
+      case command.command_name
       when "table_create"
         table = Table.new(command.name)
         table.apply_command(command)
         @tables[table.name] = table
       when "column_create"
-        column = Column.new(command.table_name, command.name)
+        column = Column.new(command.table, command.name)
         column.apply_command(command)
         @columns[column.table_name] ||= {}
         @columns[column.table_name][column.name] = column
