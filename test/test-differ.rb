@@ -41,9 +41,9 @@ class DifferTest < Test::Unit::TestCase
       }
       @to.apply_command(table_create(arguments))
 
-      actual = GroongaSchema::Diff.new
-      actual.added_tables["Words"] = @to.tables["Words"]
-      assert_equal(actual, @differ.diff)
+      expected = GroongaSchema::Diff.new
+      expected.added_tables["Words"] = @to.tables["Words"]
+      assert_equal(expected, @differ.diff)
     end
 
     test "table - remove" do
@@ -57,9 +57,9 @@ class DifferTest < Test::Unit::TestCase
       }
       @from.apply_command(table_create(arguments))
 
-      actual = GroongaSchema::Diff.new
-      actual.removed_tables["Words"] = @from.tables["Words"]
-      assert_equal(actual, @differ.diff)
+      expected = GroongaSchema::Diff.new
+      expected.removed_tables["Words"] = @from.tables["Words"]
+      assert_equal(expected, @differ.diff)
     end
 
     test "table - change" do
@@ -75,9 +75,9 @@ class DifferTest < Test::Unit::TestCase
       @from.apply_command(table_create(from_arguments))
       @to.apply_command(table_create(to_arguments))
 
-      actual = GroongaSchema::Diff.new
-      actual.changed_tables["Words"] = @to.tables["Words"]
-      assert_equal(actual, @differ.diff)
+      expected = GroongaSchema::Diff.new
+      expected.changed_tables["Words"] = @to.tables["Words"]
+      assert_equal(expected, @differ.diff)
     end
   end
 end
