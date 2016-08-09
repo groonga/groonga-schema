@@ -59,6 +59,38 @@ module GroongaSchema
         @token_filters == other.token_filters
     end
 
+    def to_create_groonga_command
+      flags_value = [type_flag, *flags].join("|")
+      token_filters_value = @token_filters.join("|")
+      token_filters_value = nil if token_filters_value.empty?
+      arguments = {
+        "name"              => @name,
+        "flags"             => flags_value,
+        "key_type"          => @key_type,
+        "value_type"        => @value_type,
+        "default_tokenizer" => @default_tokenizer,
+        "normalizer"        => @normalizer,
+        "token_filters"     => token_filters_value,
+      }
+      Groonga::Command::TableCreate.new(arguments)
+    end
+
+    private
+    def type_flag
+      case @type
+      when :no_key
+        "TABLE_NO_KEY"
+      when :hash_key
+        "TABLE_HASH_KEY"
+      when :pat_key
+        "TABLE_PAT_KEY"
+      when :dat_key
+        "TABLE_DAT_KEY"
+      else
+        "TABLE_HASH_KEY"
+      end
+    end
+
     class CommandApplier
       def initialize(table, command)
         @table = table

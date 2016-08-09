@@ -23,6 +23,14 @@ class DiffTest < Test::Unit::TestCase
     GroongaSchema::Plugin.new(name)
   end
 
+  def table(name, options)
+    table = GroongaSchema::Table.new(name)
+    options.each do |key, value|
+      table.__send__("#{key}=", value)
+    end
+    table
+  end
+
   sub_test_case "#same?" do
     test "same" do
       assert do
@@ -46,6 +54,47 @@ class DiffTest < Test::Unit::TestCase
 plugin_register --name "token_filters/stem"
 
 plugin_unregister --name "token_filters/stop_word"
+      LIST
+    end
+
+    test "added table" do
+      token_filters = [
+        "TokenFilterStopWord",
+        "TokenFilterStem",
+      ]
+      @diff.added_tables["Words"] = table("Words",
+                                          :type => :pat_key,
+                                          :key_type => "ShortText",
+                                          :default_tokenizer => "TokenBigram",
+                                          :normalizer => "NormalizerAuto",
+                                          :token_filters => token_filters)
+      @diff.added_tables["Names"] = table("Names",
+                                          :type => :hash_key,
+                                          :flags => "KEY_LARGE",
+                                          :key_type => "ShortText",
+                                          :normalizer => "NormalizerAuto")
+      @diff.added_tables["Commands"] = table("Commands",
+                                             :type => :hash_key,
+                                             :key_type => "Names",
+                                             :reference_key_type => true)
+
+      assert_equal(<<-LIST.gsub(/\\\n\s+/, ""), @diff.to_groonga_command_list)
+table_create \\
+  --flags "TABLE_HASH_KEY|KEY_LARGE" \\
+  --key_type "ShortText" \\
+  --name "Names" \\
+  --normalizer "NormalizerAuto"
+table_create \\
+  --default_tokenizer "TokenBigram" \\
+  --flags "TABLE_PAT_KEY" \\
+  --key_type "ShortText" \\
+  --name "Words" \\
+  --normalizer "NormalizerAuto" \\
+  --token_filters "TokenFilterStopWord|TokenFilterStem"
+table_create \\
+  --flags "TABLE_HASH_KEY" \\
+  --key_type "Names" \\
+  --name "Commands"
       LIST
     end
   end

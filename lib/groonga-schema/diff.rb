@@ -79,6 +79,7 @@ module GroongaSchema
         @grouped_list.clear
 
         convert_added_plugins
+        convert_added_tables
         convert_removed_plugins
 
         meaningful_grouped_list = @grouped_list.reject do |group|
@@ -98,6 +99,18 @@ module GroongaSchema
       def convert_added_plugins
         sorted_plugins = @diff.added_plugins.sort_by(&:name)
         @grouped_list << sorted_plugins.collect(&:to_register_groonga_command)
+      end
+
+      def convert_added_tables
+        sorted_tables = @diff.added_tables.sort_by do |name, table|
+          [
+            table.reference_key_type? ? 1 : 0,
+            table.name,
+          ]
+        end
+        @grouped_list << sorted_tables.collect do |name, table|
+          table.to_create_groonga_command
+        end
       end
 
       def convert_removed_plugins
