@@ -53,6 +53,34 @@ module GroongaSchema
         @sources == other.sources
     end
 
+    def to_create_groonga_command
+      flags_value = [type_flag, *flags].join("|")
+      sources_value = @sources.join(",")
+      sources_value = nil if sources_value.empty?
+      arguments = {
+        "table"  => @table_name,
+        "name"   => @name,
+        "flags"  => flags_value,
+        "type"   => @value_type,
+        "source" => sources_value,
+      }
+      Groonga::Command::ColumnCreate.new(arguments)
+    end
+
+    private
+    def type_flag
+      case @type
+      when :scalar
+        "COLUMN_SCALAR"
+      when :vector
+        "COLUMN_VECTOR"
+      when :index
+        "COLUMN_INDEX"
+      else
+        "COLUMN_SCALAR"
+      end
+    end
+
     class CommandApplier
       def initialize(column, command)
         @column = column

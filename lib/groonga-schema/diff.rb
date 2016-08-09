@@ -108,9 +108,37 @@ module GroongaSchema
             table.name,
           ]
         end
-        @grouped_list << sorted_tables.collect do |name, table|
-          table.to_create_groonga_command
+
+        sorted_tables.each do |name, table|
+          group = []
+          group << table.to_create_groonga_command
+          group.concat(convert_added_columns(name, false))
+          @grouped_list << group
         end
+
+        sorted_tables.each do |name, table|
+          @grouped_list << convert_added_columns(name, true)
+        end
+      end
+
+      def convert_added_columns(name, target_is_reference_type)
+        columns = @diff.added_columns[name]
+        return [] if columns.nil?
+
+        sorted_columns = columns.sort_by do |column_name,|
+          column_name
+        end
+
+        group = []
+        sorted_columns.each do |column_name, column|
+          if target_is_reference_type
+            next unless column.reference_value_type?
+          else
+            next if column.reference_value_type?
+          end
+          group << column.to_create_groonga_command
+        end
+        group
       end
 
       def convert_removed_plugins
