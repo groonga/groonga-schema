@@ -40,11 +40,17 @@ module GroongaSchema
       when "table_create"
         table = Table.new(command.name)
         table.apply_command(command)
+        if @tables.key?(table.key_type)
+          table.reference_key_type = true
+        end
         @tables[table.name] = table
         @columns[table.name] ||= {}
       when "column_create"
         column = Column.new(command.table, command.name)
         column.apply_command(command)
+        if @tables.key?(column.value_type)
+          column.reference_value_type = true
+        end
         @columns[column.table_name] ||= {}
         @columns[column.table_name][column.name] = column
       end

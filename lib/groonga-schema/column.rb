@@ -22,6 +22,7 @@ module GroongaSchema
     attr_accessor :flags
     attr_accessor :value_type
     attr_accessor :sources
+    attr_writer :reference_value_type
     def initialize(table_name, name)
       @table_name = table_name
       @name = name
@@ -29,6 +30,11 @@ module GroongaSchema
       @flags = []
       @value_type = "ShortText"
       @sources = []
+      @reference_value_type = false
+    end
+
+    def reference_value_type?
+      @reference_value_type
     end
 
     def apply_command(command)

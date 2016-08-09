@@ -74,6 +74,7 @@ class SchemaTest < Test::Unit::TestCase
           :default_tokenizer => table.default_tokenizer,
           :normalizer        => table.normalizer,
           :token_filters     => table.token_filters,
+          :reference_key_type? => table.reference_key_type?,
         }
       end
       assert_equal([
@@ -86,12 +87,15 @@ class SchemaTest < Test::Unit::TestCase
                        :default_tokenizer => "TokenBigram",
                        :normalizer        => "NormalizerAuto",
                        :token_filters     => ["TokenStem", "TokenStopWord"],
+                       :reference_key_type? => false,
                      },
                    ],
                    table_data)
     end
 
     test "index column" do
+      @schema.apply_command(table_create("name" => "Entries",
+                                         "flags" => "TABLE_NO_KEY"))
       arguments = {
         "table"  => "Words",
         "name"   => "entries_text",
@@ -112,6 +116,7 @@ class SchemaTest < Test::Unit::TestCase
             :flags      => column.flags,
             :value_type => column.value_type,
             :sources    => column.sources,
+            :reference_value_type? => column.reference_value_type?,
           }
         end
       end
@@ -123,6 +128,7 @@ class SchemaTest < Test::Unit::TestCase
                        :flags      => ["WITH_POSITION", "WITH_SECTION", "INDEX_TINY"],
                        :value_type => "Entries",
                        :sources    => ["title", "content"],
+                       :reference_value_type? => true,
                      },
                    ],
                    column_data)

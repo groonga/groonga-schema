@@ -24,6 +24,7 @@ module GroongaSchema
     attr_accessor :default_tokenizer
     attr_accessor :normalizer
     attr_accessor :token_filters
+    attr_writer :reference_key_type
     def initialize(name)
       @name = name
       @type = :no_key
@@ -33,6 +34,11 @@ module GroongaSchema
       @default_tokenizer = nil
       @normalizer = nil
       @token_filters = []
+      @reference_key_type = false
+    end
+
+    def reference_key_type?
+      @reference_key_type
     end
 
     def apply_command(command)
