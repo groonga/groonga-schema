@@ -63,14 +63,15 @@ module GroongaSchema
         @changed_columns.empty?
     end
 
-    def to_groonga_command_list
-      converter = GroongaCommandListConverter.new(self)
+    def to_groonga_command_list(options={})
+      converter = GroongaCommandListConverter.new(self, options)
       converter.convert
     end
 
     class GroongaCommandListConverter
-      def initialize(diff)
+      def initialize(diff, options={})
         @diff = diff
+        @options = options
         @grouped_list = []
       end
 
@@ -86,7 +87,7 @@ module GroongaSchema
         formatted_grouped_list = meaningful_grouped_list.collect do |group|
           command_list = ""
           group.each do |command|
-            command_list << "#{command.to_command_format}\n"
+            command_list << "#{format_command(command)}\n"
           end
           command_list
         end
@@ -106,6 +107,15 @@ module GroongaSchema
 
         sorted_plugins = @diff.removed_plugins.sort_by(&:name)
         @grouped_list << sorted_plugins.collect(&:to_unregister_groonga_command)
+      end
+
+      def format_command(command)
+        case @options[:format]
+        when :uri
+          command.to_uri_format
+        else
+          command.to_command_format
+        end
       end
     end
   end

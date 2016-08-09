@@ -31,6 +31,7 @@ module GroongaSchema
 
       def initialize(args)
         @args = args
+        @format = :command
       end
 
       def run
@@ -39,7 +40,7 @@ module GroongaSchema
         from_schema = parse_schema(@from_path)
         to_schema = parse_schema(@to_path)
         differ = GroongaSchema::Differ.new(from_schema, to_schema)
-        diff = differ.diff
+        diff = differ.diff(:format => @format)
         $stdout.print(diff.to_groonga_command_list)
 
         if diff.same?
@@ -53,6 +54,15 @@ module GroongaSchema
       def parse_arguments
         parser = OptionParser.new
         parser.banner += " FROM_SCHEMA TO_SCHEMA"
+
+        available_formats = [:command, :uri]
+        parser.on("--format=FORMAT", available_formats,
+                  "Specify output Groonga command format.",
+                  "Available formats: #{available_formats.join(", ")}",
+                  "(#{@format})") do |format|
+          @format = format
+        end
+
         rest_args = parser.parse(@args)
 
         if rest_args.size != 2
