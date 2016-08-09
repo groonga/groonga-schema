@@ -43,9 +43,9 @@ class DiffTest < Test::Unit::TestCase
       @diff.added_plugins << plugin("token_filters/stem")
       @diff.removed_plugins << plugin("token_filters/stop_word")
       assert_equal(<<-LIST, @diff.to_groonga_command_list)
-plugin_register token_filters/stem
+plugin_register --name "token_filters/stem"
 
-plugin_unregister token_filters/stop_word
+plugin_unregister --name "token_filters/stop_word"
       LIST
     end
   end

@@ -14,6 +14,8 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
+require "groonga/command"
+
 module GroongaSchema
   class Plugin
     attr_reader :name
@@ -25,6 +27,14 @@ module GroongaSchema
       return false unless other.is_a?(self.class)
 
       @name == other.name
+    end
+
+    def to_register_groonga_command
+      Groonga::Command::PluginRegister.new(:name => @name)
+    end
+
+    def to_unregister_groonga_command
+      Groonga::Command::PluginUnregister.new(:name => @name)
     end
   end
 end

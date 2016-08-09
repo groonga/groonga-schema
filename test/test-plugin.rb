@@ -28,4 +28,16 @@ class PluginTest < Test::Unit::TestCase
       assert_not_equal(plugin1, plugin2)
     end
   end
+
+  test "#to_register_groonga_command" do
+    plugin = GroongaSchema::Plugin.new("token_filters/stem")
+    assert_equal("plugin_register --name \"token_filters/stem\"",
+                 plugin.to_register_groonga_command.to_command_format)
+  end
+
+  test "#to_unregister_groonga_command" do
+    plugin = GroongaSchema::Plugin.new("token_filters/stem")
+    assert_equal("plugin_unregister --name \"token_filters/stem\"",
+                 plugin.to_unregister_groonga_command.to_command_format)
+  end
 end

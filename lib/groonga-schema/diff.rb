@@ -71,33 +71,41 @@ module GroongaSchema
     class GroongaCommandListConverter
       def initialize(diff)
         @diff = diff
-        @buffer = ""
+        @grouped_list = []
       end
 
       def convert
-        @buffer.clear
+        @grouped_list.clear
+
         convert_added_plugins
         convert_removed_plugins
-        @buffer
+
+        meaningful_grouped_list = @grouped_list.reject do |group|
+          group.empty?
+        end
+        formatted_grouped_list = meaningful_grouped_list.collect do |group|
+          command_list = ""
+          group.each do |command|
+            command_list << "#{command.to_command_format}\n"
+          end
+          command_list
+        end
+        formatted_grouped_list.join("\n")
       end
 
       private
       def convert_added_plugins
         return if @diff.added_plugins.empty?
 
-        @buffer << "\n" unless @buffer.empty?
-        @diff.added_plugins.sort_by(&:name).each do |plugin|
-          @buffer << "plugin_register #{plugin.name}\n"
-        end
+        sorted_plugins = @diff.added_plugins.sort_by(&:name)
+        @grouped_list << sorted_plugins.collect(&:to_register_groonga_command)
       end
 
       def convert_removed_plugins
         return if @diff.removed_plugins.empty?
 
-        @buffer << "\n" unless @buffer.empty?
-        @diff.removed_plugins.sort_by(&:name).each do |plugin|
-          @buffer << "plugin_unregister #{plugin.name}\n"
-        end
+        sorted_plugins = @diff.removed_plugins.sort_by(&:name)
+        @grouped_list << sorted_plugins.collect(&:to_unregister_groonga_command)
       end
     end
   end
