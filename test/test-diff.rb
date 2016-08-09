@@ -19,6 +19,10 @@ class DiffTest < Test::Unit::TestCase
     @diff = GroongaSchema::Diff.new
   end
 
+  def plugin(name)
+    GroongaSchema::Plugin.new(name)
+  end
+
   sub_test_case "#same?" do
     test "same" do
       assert do
@@ -27,10 +31,22 @@ class DiffTest < Test::Unit::TestCase
     end
 
     test "different" do
-      @diff.added_plugins << GroongaSchema::Plugin.new("token_filters/stem")
+      @diff.added_plugins << plugin("token_filters/stem")
       assert do
         not @diff.same?
       end
+    end
+  end
+
+  sub_test_case "#to_groonga_command_list" do
+    test "plugins" do
+      @diff.added_plugins << plugin("token_filters/stem")
+      @diff.removed_plugins << plugin("token_filters/stop_word")
+      assert_equal(<<-LIST, @diff.to_groonga_command_list)
+plugin_register token_filters/stem
+
+plugin_unregister token_filters/stop_word
+      LIST
     end
   end
 end
