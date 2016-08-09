@@ -96,15 +96,11 @@ module GroongaSchema
 
       private
       def convert_added_plugins
-        return if @diff.added_plugins.empty?
-
         sorted_plugins = @diff.added_plugins.sort_by(&:name)
         @grouped_list << sorted_plugins.collect(&:to_register_groonga_command)
       end
 
       def convert_removed_plugins
-        return if @diff.removed_plugins.empty?
-
         sorted_plugins = @diff.removed_plugins.sort_by(&:name)
         @grouped_list << sorted_plugins.collect(&:to_unregister_groonga_command)
       end
