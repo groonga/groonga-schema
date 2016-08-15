@@ -42,6 +42,14 @@ module GroongaSchema
       applier.apply
     end
 
+    def apply_column(column)
+      self.type                 = column.type
+      self.flags                = column.flags
+      self.value_type           = column.value_type
+      self.sources              = column.sources
+      self.reference_value_type = column.reference_value_type?
+    end
+
     def ==(other)
       return false unless other.is_a?(self.class)
 
@@ -73,6 +81,16 @@ module GroongaSchema
         "name"   => @name,
       }
       Groonga::Command::ColumnRemove.new(arguments)
+    end
+
+    def to_copy_groonga_command(to_table_name, to_name)
+      arguments = {
+        "from_table" => @table_name,
+        "from_name"  => @name,
+        "to_table"   => to_table_name,
+        "to_name"    => to_name,
+      }
+      Groonga::Command::ColumnCopy.new(arguments)
     end
 
     private

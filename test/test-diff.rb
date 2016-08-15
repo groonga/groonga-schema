@@ -230,5 +230,127 @@ table_remove \\
   --name "Names"
       LIST
     end
+
+    test "changed tables - without columns" do
+      @diff.changed_tables["Names"] = table("Names",
+                                            :type => :hash_key,
+                                            :flags => "KEY_LARGE",
+                                            :key_type => "ShortText",
+                                            :normalizer => "NormalizerAuto")
+      @diff.changed_tables["Commands"] = table("Commands",
+                                               :type => :hash_key,
+                                               :key_type => "Names",
+                                               :reference_key_type => true)
+
+      assert_equal(<<-LIST.gsub(/\\\n\s+/, ""), @diff.to_groonga_command_list)
+table_create \\
+  --flags "TABLE_HASH_KEY|KEY_LARGE" \\
+  --key_type "ShortText" \\
+  --name "Names_new" \\
+  --normalizer "NormalizerAuto"
+table_copy \\
+  --from_name "Names" \\
+  --to_name "Names_new"
+table_rename \\
+  --name "Names" \\
+  --new_name "Names_old"
+table_rename \\
+  --name "Names_new" \\
+  --new_name "Names"
+
+table_create \\
+  --flags "TABLE_HASH_KEY" \\
+  --key_type "Names" \\
+  --name "Commands_new"
+table_copy \\
+  --from_name "Commands" \\
+  --to_name "Commands_new"
+table_rename \\
+  --name "Commands" \\
+  --new_name "Commands_old"
+table_rename \\
+  --name "Commands_new" \\
+  --new_name "Commands"
+
+table_remove \\
+  --name "Names_old"
+
+table_remove \\
+  --name "Commands_old"
+      LIST
+    end
+
+    test "changed tables - with columns" do
+      @diff.changed_tables["Names"] = table("Names",
+                                            :type => :hash_key,
+                                            :flags => "KEY_LARGE",
+                                            :key_type => "ShortText",
+                                            :normalizer => "NormalizerAuto")
+      commands_columns = [
+        column("Commands", "description",
+               :value_type => "Text"),
+        column("Commands", "comment",
+               :value_type => "ShortText"),
+      ]
+      @diff.changed_tables["Commands"] = table("Commands",
+                                               :type => :hash_key,
+                                               :key_type => "Names",
+                                               :reference_key_type => true,
+                                               :columns => commands_columns)
+
+      assert_equal(<<-LIST.gsub(/\\\n\s+/, ""), @diff.to_groonga_command_list)
+table_create \\
+  --flags "TABLE_HASH_KEY|KEY_LARGE" \\
+  --key_type "ShortText" \\
+  --name "Names_new" \\
+  --normalizer "NormalizerAuto"
+table_copy \\
+  --from_name "Names" \\
+  --to_name "Names_new"
+table_rename \\
+  --name "Names" \\
+  --new_name "Names_old"
+table_rename \\
+  --name "Names_new" \\
+  --new_name "Names"
+
+table_create \\
+  --flags "TABLE_HASH_KEY" \\
+  --key_type "Names" \\
+  --name "Commands_new"
+column_create \\
+  --flags "COLUMN_SCALAR" \\
+  --name "comment" \\
+  --table "Commands_new" \\
+  --type "ShortText"
+column_copy \\
+  --from_name "comment" \\
+  --from_table "Commands" \\
+  --to_name "comment" \\
+  --to_table "Commands_new"
+column_create \\
+  --flags "COLUMN_SCALAR" \\
+  --name "description" \\
+  --table "Commands_new" \\
+  --type "Text"
+column_copy \\
+  --from_name "description" \\
+  --from_table "Commands" \\
+  --to_name "description" \\
+  --to_table "Commands_new"
+table_rename \\
+  --name "Commands" \\
+  --new_name "Commands_old"
+table_rename \\
+  --name "Commands_new" \\
+  --new_name "Commands"
+
+table_remove \\
+  --name "Names_old"
+
+table_remove \\
+  --name "Commands_old"
+      LIST
+    end
   end
 end

@@ -83,6 +83,7 @@ module GroongaSchema
         convert_removed_columns
         convert_removed_tables
         convert_removed_plugins
+        convert_changed_tables
 
         meaningful_grouped_list = @grouped_list.reject do |group|
           group.empty?
@@ -193,6 +194,22 @@ module GroongaSchema
       def convert_removed_plugins
         sorted_plugins = @diff.removed_plugins.sort_by(&:name)
         @grouped_list << sorted_plugins.collect(&:to_unregister_groonga_command)
+      end
+
+      def convert_changed_tables
+        sorted_tables = @diff.changed_tables.sort_by do |name, table|
+          [
+            table.reference_key_type? ? 1 : 0,
+            table.name,
+          ]
+        end
+
+        sorted_tables.each do |name, table|
+          @grouped_list << table.to_migrate_start_groonga_commands
+        end
+        sorted_tables.each do |name, table|
+          @grouped_list << table.to_migrate_finish_groonga_commands
+        end
       end
 
       def format_command(command)

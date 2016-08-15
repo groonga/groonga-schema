@@ -51,6 +51,10 @@ module GroongaSchema
         if @tables.key?(column.value_type)
           column.reference_value_type = true
         end
+        table = @tables[column.table_name]
+        if table
+          table.columns << column
+        end
         @columns[column.table_name] ||= {}
         @columns[column.table_name][column.name] = column
       end

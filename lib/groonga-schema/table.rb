@@ -25,6 +25,7 @@ module GroongaSchema
     attr_accessor :normalizer
     attr_accessor :token_filters
     attr_writer :reference_key_type
+    attr_accessor :columns
     def initialize(name)
       @name = name
       @type = :no_key
@@ -35,6 +36,7 @@ module GroongaSchema
       @normalizer = nil
       @token_filters = []
       @reference_key_type = false
+      @columns = []
     end
 
     def reference_key_type?
@@ -60,11 +62,54 @@ module GroongaSchema
     end
 
     def to_create_groonga_command
+      table_create_command(@name)
+    end
+
+    def to_remove_groonga_command
+      table_remove_command(@name)
+    end
+
+    def to_migrate_start_groonga_commands
+      commands = []
+      commands << table_create_command(new_name)
+      if @columns.empty?
+        commands << table_copy_command(@name, new_name)
+      else
+        sorted_columns = @columns.sort_by(&:name)
+        sorted_columns.each do |column|
+          new_column = Column.new(new_name, column.name)
+          new_column.apply_column(column)
+          commands << new_column.to_create_groonga_command
+          commands << column.to_copy_groonga_command(new_name,
+                                                     column.name)
+        end
+      end
+      commands << table_rename_command(@name, old_name)
+      commands << table_rename_command(new_name, @name)
+      commands
+    end
+
+    def to_migrate_finish_groonga_commands
+      [
+        table_remove_command(old_name),
+      ]
+    end
+
+    private
+    def old_name
+      "#{@name}_old"
+    end
+
+    def new_name
+      "#{@name}_new"
+    end
+
+    def table_create_command(name)
       flags_value = [type_flag, *flags].join("|")
       token_filters_value = @token_filters.join("|")
       token_filters_value = nil if token_filters_value.empty?
       arguments = {
-        "name"              => @name,
+        "name"              => name,
         "flags"             => flags_value,
         "key_type"          => @key_type,
         "value_type"        => @value_type,
@@ -75,14 +120,29 @@ module GroongaSchema
       Groonga::Command::TableCreate.new(arguments)
     end
 
-    def to_remove_groonga_command
+    def table_remove_command(name)
       arguments = {
-        "name" => @name,
+        "name" => name,
       }
       Groonga::Command::TableRemove.new(arguments)
     end
 
-    private
+    def table_copy_command(from_name, to_name)
+      arguments = {
+        "from_name" => from_name,
+        "to_name"   => to_name,
+      }
+      Groonga::Command::TableCopy.new(arguments)
+    end
+
+    def table_rename_command(name, new_name)
+      arguments = {
+        "name"     => name,
+        "new_name" => new_name,
+      }
+      Groonga::Command::TableRename.new(arguments)
+    end
+
     def type_flag
       case @type
       when :no_key
