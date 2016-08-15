@@ -67,6 +67,14 @@ module GroongaSchema
       Groonga::Command::ColumnCreate.new(arguments)
     end
 
+    def to_remove_groonga_command
+      arguments = {
+        "table"  => @table_name,
+        "name"   => @name,
+      }
+      Groonga::Command::ColumnRemove.new(arguments)
+    end
+
     private
     def type_flag
       case @type

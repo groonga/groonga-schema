@@ -80,6 +80,7 @@ module GroongaSchema
 
         convert_added_plugins
         convert_added_tables
+        convert_removed_columns
         convert_removed_plugins
 
         meaningful_grouped_list = @grouped_list.reject do |group|
@@ -139,6 +140,40 @@ module GroongaSchema
           group << column.to_create_groonga_command
         end
         group
+      end
+
+      def convert_removed_columns
+        sorted_removed_columns = @diff.removed_columns.sort_by do |table_name,|
+          table_name
+        end
+
+        column_groups = []
+        sorted_removed_columns.each do |table_name, columns|
+          group = []
+          columns.each do |column_name, column|
+            group << column unless column.sources.empty?
+          end
+          next if group.empty?
+          column_groups << group
+        end
+        sorted_removed_columns.each do |table_name, columns|
+          group = []
+          columns.each do |column_name, column|
+            group << column if column.sources.empty?
+          end
+          next if group.empty?
+          column_groups << group
+        end
+
+        column_groups.each do |columns|
+          sorted_columns = columns.sort_by do |column|
+            column.name
+          end
+          group = sorted_columns.collect do |column|
+            column.to_remove_groonga_command
+          end
+          @grouped_list << group
+        end
       end
 
       def convert_removed_plugins

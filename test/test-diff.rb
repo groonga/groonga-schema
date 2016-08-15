@@ -174,5 +174,41 @@ column_create \\
   --type "Commands"
       LIST
     end
+
+    test "removed tables" do
+      @diff.removed_columns["Words"] = {
+        "weight" => column("Words", "weight",
+                           :value_type => "Float"),
+        "commands_description" => column("Words", "commands_description",
+                                         :type => :index,
+                                         :flags => ["WITH_POSITION"],
+                                         :value_type => "Commands",
+                                         :sources => ["description"],
+                                         :reference_value_type => true),
+      }
+      @diff.removed_columns["Commands"] = {
+        "description" => column("Commands", "description",
+                                :value_type => "Text"),
+        "comment" => column("Commands", "comment",
+                            :value_type => "ShortText"),
+      }
+
+      assert_equal(<<-LIST.gsub(/\\\n\s+/, ""), @diff.to_groonga_command_list)
+column_remove \\
+  --name "commands_description" \\
+  --table "Words"
+
+column_remove \\
+  --name "comment" \\
+  --table "Commands"
+column_remove \\
+  --name "description" \\
+  --table "Commands"
+
+column_remove \\
+  --name "weight" \\
+  --table "Words"
+      LIST
+    end
   end
 end
