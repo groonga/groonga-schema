@@ -311,6 +311,27 @@ table_remove \\
     end
 
     test "changed tables - with columns" do
+      token_filters = [
+        "TokenFilterStopWord",
+        "TokenFilterStem",
+      ]
+      words_columns = [
+        column("Words", "weight",
+               :value_type => "Float"),
+        column("Words", "commands_description",
+               :type => :index,
+               :flags => ["WITH_POSITION"],
+               :value_type => "Commands",
+               :sources => ["description"],
+               :reference_value_type => true),
+      ]
+      @diff.changed_tables["Words"] = table("Words",
+                                            :type => :pat_key,
+                                            :key_type => "ShortText",
+                                            :default_tokenizer => "TokenBigram",
+                                            :normalizer => "NormalizerAuto",
+                                            :token_filters => token_filters,
+                                            :columns => words_columns)
       @diff.changed_tables["Names"] = table("Names",
                                             :type => :hash_key,
                                             :flags => "KEY_LARGE",
@@ -345,6 +366,36 @@ table_rename \\
   --new_name "Names"
 
 table_create \\
+  --default_tokenizer "TokenBigram" \\
+  --flags "TABLE_PAT_KEY" \\
+  --key_type "ShortText" \\
+  --name "Words_new" \\
+  --normalizer "NormalizerAuto" \\
+  --token_filters "TokenFilterStopWord|TokenFilterStem"
+column_create \\
+  --flags "COLUMN_INDEX|WITH_POSITION" \\
+  --name "commands_description" \\
+  --source "description" \\
+  --table "Words_new" \\
+  --type "Commands"
+column_create \\
+  --flags "COLUMN_SCALAR" \\
+  --name "weight" \\
+  --table "Words_new" \\
+  --type "Float"
+column_copy \\
+  --from_name "weight" \\
+  --from_table "Words" \\
+  --to_name "weight" \\
+  --to_table "Words_new"
+table_rename \\
+  --name "Words" \\
+   --new_name "Words_old"
+table_rename \\
+  --name "Words_new" \\
+  --new_name "Words"
+
+table_create \\
   --flags "TABLE_HASH_KEY" \\
   --key_type "Names" \\
   --name "Commands_new"
@@ -377,6 +428,9 @@ table_rename \\
 
 table_remove \\
   --name "Names_old"
+
+table_remove \\
+  --name "Words_old"
 
 table_remove \\
   --name "Commands_old"

@@ -84,8 +84,9 @@ module GroongaSchema
           new_column = Column.new(new_name, column.name)
           new_column.apply_column(column)
           commands << new_column.to_create_groonga_command
-          commands << column.to_copy_groonga_command(new_name,
-                                                     column.name)
+          unless column.type == :index
+            commands << column.to_copy_groonga_command(new_name, column.name)
+          end
         end
       end
       commands << table_rename_command(@name, old_name)
