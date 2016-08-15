@@ -175,7 +175,7 @@ column_create \\
       LIST
     end
 
-    test "removed tables" do
+    test "removed columns" do
       @diff.removed_columns["Words"] = {
         "weight" => column("Words", "weight",
                            :value_type => "Float"),
@@ -208,6 +208,26 @@ column_remove \\
 column_remove \\
   --name "weight" \\
   --table "Words"
+      LIST
+    end
+
+    test "removed tables" do
+      @diff.removed_tables["Names"] = table("Names",
+                                            :type => :hash_key,
+                                            :flags => "KEY_LARGE",
+                                            :key_type => "ShortText",
+                                            :normalizer => "NormalizerAuto")
+      @diff.removed_tables["Commands"] = table("Commands",
+                                               :type => :hash_key,
+                                               :key_type => "Names",
+                                               :reference_key_type => true)
+
+      assert_equal(<<-LIST.gsub(/\\\n\s+/, ""), @diff.to_groonga_command_list)
+table_remove \\
+  --name "Commands"
+
+table_remove \\
+  --name "Names"
       LIST
     end
   end

@@ -75,6 +75,13 @@ module GroongaSchema
       Groonga::Command::TableCreate.new(arguments)
     end
 
+    def to_remove_groonga_command
+      arguments = {
+        "name" => @name,
+      }
+      Groonga::Command::TableRemove.new(arguments)
+    end
+
     private
     def type_flag
       case @type

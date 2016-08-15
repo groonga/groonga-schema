@@ -81,6 +81,7 @@ module GroongaSchema
         convert_added_plugins
         convert_added_tables
         convert_removed_columns
+        convert_removed_tables
         convert_removed_plugins
 
         meaningful_grouped_list = @grouped_list.reject do |group|
@@ -173,6 +174,19 @@ module GroongaSchema
             column.to_remove_groonga_command
           end
           @grouped_list << group
+        end
+      end
+
+      def convert_removed_tables
+        sorted_tables = @diff.removed_tables.sort_by do |name, table|
+          [
+            table.reference_key_type? ? 0 : 1,
+            table.name,
+          ]
+        end
+
+        sorted_tables.each do |name, table|
+          @grouped_list << [table.to_remove_groonga_command]
         end
       end
 
