@@ -23,6 +23,7 @@ module GroongaSchema
     attr_accessor :value_type
     attr_accessor :sources
     attr_writer :reference_value_type
+    attr_accessor :related_columns
     def initialize(table_name, name)
       @table_name = table_name
       @name = name
@@ -31,6 +32,7 @@ module GroongaSchema
       @value_type = "ShortText"
       @sources = []
       @reference_value_type = false
+      @related_columns = []
     end
 
     def reference_value_type?

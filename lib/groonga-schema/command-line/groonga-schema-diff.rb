@@ -40,8 +40,8 @@ module GroongaSchema
         from_schema = parse_schema(@from_path)
         to_schema = parse_schema(@to_path)
         differ = GroongaSchema::Differ.new(from_schema, to_schema)
-        diff = differ.diff(:format => @format)
-        $stdout.print(diff.to_groonga_command_list)
+        diff = differ.diff
+        $stdout.print(diff.to_groonga_command_list(:format => @format))
 
         if diff.same?
           0

@@ -26,6 +26,8 @@ module GroongaSchema
     attr_accessor :token_filters
     attr_writer :reference_key_type
     attr_accessor :columns
+    attr_accessor :related_tables
+    attr_accessor :related_columns
     def initialize(name)
       @name = name
       @type = :no_key
@@ -37,6 +39,8 @@ module GroongaSchema
       @token_filters = []
       @reference_key_type = false
       @columns = []
+      @related_tables = []
+      @related_columns = []
     end
 
     def reference_key_type?

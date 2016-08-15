@@ -175,6 +175,36 @@ column_create \\
       LIST
     end
 
+    test "added columns" do
+      @diff.added_columns["Commands"] = {
+        "description" => column("Commands", "description",
+                                :value_type => "Text"),
+      }
+      @diff.added_columns["Words"] = {
+        "commands_description" => column("Words", "commands_description",
+                                         :type => :index,
+                                         :flags => ["WITH_POSITION"],
+                                         :value_type => "Commands",
+                                         :sources => ["description"],
+                                         :reference_value_type => true),
+      }
+
+      assert_equal(<<-LIST.gsub(/\\\n\s+/, ""), @diff.to_groonga_command_list)
+column_create \\
+  --flags "COLUMN_SCALAR" \\
+  --name "description" \\
+  --table "Commands" \\
+  --type "Text"
+
+column_create \\
+  --flags "COLUMN_INDEX|WITH_POSITION" \\
+  --name "commands_description" \\
+  --source "description" \\
+  --table "Words" \\
+  --type "Commands"
+      LIST
+    end
+
     test "removed columns" do
       @diff.removed_columns["Words"] = {
         "weight" => column("Words", "weight",

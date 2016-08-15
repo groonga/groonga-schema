@@ -105,21 +105,34 @@ module GroongaSchema
       end
 
       def convert_added_tables
-        sorted_tables = @diff.added_tables.sort_by do |name, table|
-          [
-            table.reference_key_type? ? 1 : 0,
-            table.name,
-          ]
+        reference_table_names = []
+        no_reference_table_names = []
+        @diff.added_tables.each do |name, table|
+          if table.reference_key_type?
+            reference_table_names << name
+          else
+            no_reference_table_names << name
+          end
         end
+        no_reference_table_names |=
+          (@diff.added_columns.keys - reference_table_names)
 
-        sorted_tables.each do |name, table|
+        sorted_reference_table_names = reference_table_names.sort
+        sorted_no_reference_table_names = no_reference_table_names.sort
+
+        sorted_table_names =
+          sorted_no_reference_table_names +
+          sorted_reference_table_names
+
+        sorted_table_names.each do |name|
           group = []
-          group << table.to_create_groonga_command
+          table = @diff.added_tables[name]
+          group << table.to_create_groonga_command if table
           group.concat(convert_added_columns(name, false))
           @grouped_list << group
         end
 
-        sorted_tables.each do |name, table|
+        sorted_table_names.each do |name|
           @grouped_list << convert_added_columns(name, true)
         end
       end

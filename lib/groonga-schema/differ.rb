@@ -46,9 +46,9 @@ module GroongaSchema
       from_tables.each do |name, from_table|
         to_table = to_tables[name]
         if to_table.nil?
-          diff.removed_tables[name] = from_table
+          diff.removed_tables[from_table.name] = from_table
         elsif from_table != to_table
-          diff.changed_tables[name] = to_table
+          diff_changed_table(diff, to_table)
         end
       end
 
@@ -57,6 +57,20 @@ module GroongaSchema
         if from_table.nil?
           diff.added_tables[name] = to_table
         end
+      end
+    end
+
+    def diff_changed_table(diff, to_table)
+      diff.changed_tables[to_table.name] = to_table
+
+      to_table.related_tables.each do |table|
+        diff.changed_tables[table.name] = table
+      end
+
+      to_table.related_columns.each do |column|
+        table_name = column.table_name
+        diff.changed_columns[table_name] ||= {}
+        diff.changed_columns[table_name][column.name] = column
       end
     end
 
@@ -71,8 +85,7 @@ module GroongaSchema
             diff.removed_columns[table_name] ||= {}
             diff.removed_columns[table_name][name] = from_column
           elsif from_column != to_column
-            diff.changed_columns[table_name] ||= {}
-            diff.changed_columns[table_name][name] = to_column
+            diff_changed_column(diff, to_column)
           end
         end
       end
@@ -86,6 +99,21 @@ module GroongaSchema
             diff.added_columns[table_name][name] = to_column
           end
         end
+      end
+    end
+
+    def diff_changed_column(diff, to_column)
+      table_name = to_column.table_name
+      name = to_column.name
+
+      diff.changed_columns[table_name] ||= {}
+      diff.changed_columns[table_name][name] = to_column
+
+      to_column.related_columns.each do |related_column|
+        related_table_name = related_column.table_name
+        related_name = related_column.name
+        diff.changed_columns[related_table_name] ||= {}
+        diff.changed_columns[related_table_name][related_name] = related_column
       end
     end
   end
