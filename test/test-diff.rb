@@ -352,5 +352,114 @@ table_remove \\
   --name "Commands_old"
       LIST
     end
+
+    test "changed columns" do
+      @diff.changed_columns["Words"] = {
+        "weight" => column("Words", "weight",
+                           :value_type => "Float"),
+        "commands_description" => column("Words", "commands_description",
+                                         :type => :index,
+                                         :flags => ["WITH_POSITION"],
+                                         :value_type => "Commands",
+                                         :sources => ["description"],
+                                         :reference_value_type => true),
+      }
+      @diff.changed_columns["Commands"] = {
+        "description" => column("Commands", "description",
+                                :value_type => "Text"),
+        "comment" => column("Commands", "comment",
+                            :value_type => "ShortText"),
+      }
+
+      assert_equal(<<-LIST.gsub(/\\\n\s+/, ""), @diff.to_groonga_command_list)
+column_create \\
+  --flags "COLUMN_SCALAR" \\
+  --name "comment_new" \\
+  --table "Commands" \\
+  --type "ShortText"
+column_copy \\
+  --from_name "comment" \\
+  --from_table "Commands" \\
+  --to_name "comment_new" \\
+  --to_table "Commands"
+column_rename \\
+  --name "comment" \\
+  --new_name "comment_old" \\
+  --table "Commands"
+column_rename \\
+  --name "comment_new" \\
+  --new_name "comment" \\
+  --table "Commands"
+
+column_create \\
+  --flags "COLUMN_SCALAR" \\
+  --name "description_new" \\
+  --table "Commands" \\
+  --type "Text"
+column_copy \\
+  --from_name "description" \\
+  --from_table "Commands" \\
+  --to_name "description_new" \\
+  --to_table "Commands"
+column_rename \\
+  --name "description" \\
+  --new_name "description_old" \\
+  --table "Commands"
+column_rename \\
+  --name "description_new" \\
+  --new_name "description" \\
+  --table "Commands"
+
+column_create \\
+  --flags "COLUMN_SCALAR" \\
+  --name "weight_new" \\
+  --table "Words" \\
+  --type "Float"
+column_copy \\
+  --from_name "weight" \\
+  --from_table "Words" \\
+  --to_name "weight_new" \\
+  --to_table "Words"
+column_rename \\
+  --name "weight" \\
+  --new_name "weight_old" \\
+  --table "Words"
+column_rename \\
+  --name "weight_new" \\
+  --new_name "weight" \\
+  --table "Words"
+
+column_create \\
+  --flags "COLUMN_INDEX|WITH_POSITION" \\
+  --name "commands_description_new" \\
+  --source "description" \\
+  --table "Words" \\
+  --type "Commands"
+column_rename \\
+  --name "commands_description" \\
+  --new_name "commands_description_old" \\
+  --table "Words"
+column_rename \\
+  --name "commands_description_new" \\
+  --new_name "commands_description" \\
+  --table "Words"
+
+column_remove \\
+  --name "commands_description_old" \\
+  --table "Words"
+
+column_remove \\
+  --name "comment_old" \\
+  --table "Commands"
+
+column_remove \\
+  --name "description_old" \\
+  --table "Commands"
+
+column_remove \\
+  --name "weight_old" \\
+  --table "Words"
+      LIST
+    end
   end
 end

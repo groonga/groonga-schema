@@ -62,12 +62,50 @@ module GroongaSchema
     end
 
     def to_create_groonga_command
+      column_create_command(@name)
+    end
+
+    def to_remove_groonga_command
+      column_remove_command(@name)
+    end
+
+    def to_copy_groonga_command(to_table_name, to_name)
+      column_copy_command(to_table_name, to_name)
+    end
+
+    def to_migrate_start_groonga_commands
+      commands = []
+      commands << column_create_command(new_name)
+      if type != :index
+        commands << column_copy_command(@table_name, new_name)
+      end
+      commands << column_rename_command(@name, old_name)
+      commands << column_rename_command(new_name, @name)
+      commands
+    end
+
+    def to_migrate_finish_groonga_commands
+      [
+        column_remove_command(old_name),
+      ]
+    end
+
+    private
+    def old_name
+      "#{@name}_old"
+    end
+
+    def new_name
+      "#{@name}_new"
+    end
+
+    def column_create_command(name)
       flags_value = [type_flag, *flags].join("|")
       sources_value = @sources.join(",")
       sources_value = nil if sources_value.empty?
       arguments = {
         "table"  => @table_name,
-        "name"   => @name,
+        "name"   => name,
         "flags"  => flags_value,
         "type"   => @value_type,
         "source" => sources_value,
@@ -75,15 +113,15 @@ module GroongaSchema
       Groonga::Command::ColumnCreate.new(arguments)
     end
 
-    def to_remove_groonga_command
+    def column_remove_command(name)
       arguments = {
         "table"  => @table_name,
-        "name"   => @name,
+        "name"   => name,
       }
       Groonga::Command::ColumnRemove.new(arguments)
     end
 
-    def to_copy_groonga_command(to_table_name, to_name)
+    def column_copy_command(to_table_name, to_name)
       arguments = {
         "from_table" => @table_name,
         "from_name"  => @name,
@@ -93,7 +131,15 @@ module GroongaSchema
       Groonga::Command::ColumnCopy.new(arguments)
     end
 
-    private
+    def column_rename_command(name, new_name)
+      arguments = {
+        "table"    => @table_name,
+        "name"     => name,
+        "new_name" => new_name,
+      }
+      Groonga::Command::ColumnRename.new(arguments)
+    end
+
     def type_flag
       case @type
       when :scalar

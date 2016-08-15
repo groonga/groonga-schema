@@ -207,8 +207,38 @@ module GroongaSchema
         sorted_tables.each do |name, table|
           @grouped_list << table.to_migrate_start_groonga_commands
         end
+        convert_changed_columns
         sorted_tables.each do |name, table|
           @grouped_list << table.to_migrate_finish_groonga_commands
+        end
+      end
+
+      def convert_changed_columns
+        all_columns = []
+        @diff.changed_columns.each do |table_name, columns|
+          all_columns.concat(columns.values)
+        end
+
+        sorted_columns = all_columns.sort_by do |column|
+          [
+            (column.type == :index) ? 1 : 0,
+            column.table_name,
+            column.name,
+          ]
+        end
+        sorted_columns.each do |column|
+          @grouped_list << column.to_migrate_start_groonga_commands
+        end
+
+        sorted_columns = all_columns.sort_by do |column|
+          [
+            (column.type == :index) ? 0 : 1,
+            column.table_name,
+            column.name,
+          ]
+        end
+        sorted_columns.each do |column|
+          @grouped_list << column.to_migrate_finish_groonga_commands
         end
       end
 
