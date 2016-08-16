@@ -135,6 +135,67 @@ load --table Logs
 `Logs.timestamp` column's value type is changed to `Time` from
 `ShortText` and data are also converted.
 
+You can also use `groonga-schema-diff` to remote databases.
+
+The following command line shows difference between databases served
+at `http://192.168.0.1:10041` and `http://192.168.0.2:10041/`:
+
+```text
+% groonga-schema-diff \
+    'http://192.168.0.1:10041/d/dump?dump_records=no' \
+    'http://192.168.0.2:10041/d/dump?dump_records=no'
+```
+
+You can apply the output Groonga command list by `groonga-client`
+command provided by `groonga-client-cli` gem:
+
+```text
+% groonga-client --host 192.168.0.1 diff.grn
+```
+
+The following command synchronizes schema at
+`http://192.168.0.1:10041/` with schema at `http://192.168.0.1:10042/`:
+
+```text
+% groonga-schema-diff \
+    'http://192.168.0.1:10041/d/dump?dump_records=no' \
+    'http://192.168.0.2:10041/d/dump?dump_records=no' |
+  groonga-client --host 192.168.0.1
+```
+
+After this command line, the following command line outputs nothing
+because there are no difference between schema at
+`http://192.168.0.1:10041/` and `http://192.168.0.1:10042/`:
+
+```text
+% groonga-schema-diff \
+    'http://192.168.0.1:10041/d/dump?dump_records=no' \
+    'http://192.168.0.2:10041/d/dump?dump_records=no'
+%
+```
+
+NOTE: You should use database carefully while applying
+changes. Because some tables and columns may be removed while applying
+changes. If you touch removed tables and/or columns from another
+threads, Groonga may be crashed. It's better that you reduce the max
+number of threads to 1 while applying changes like the following:
+
+```text
+% echo thread_limit 1 | groonga-client --host 192.168.0.1
+% groonga-schema-diff \
+    'http://192.168.0.1:10041/d/dump?dump_records=no' \
+    'http://192.168.0.2:10041/d/dump?dump_records=no' |
+  groonga-client --host 192.168.0.1
+% echo thread_limit 8 | groonga-client --host 192.168.0.1
+```
+
+NOTE: You can't use the `thread_limit` technique with `groonga-httpd`
+because `groonga-httpd` is multi-process model not multi-threading
+model. You need to reduce the number of workers by changing
+`worker_processes` to `1` in `groonga-httpd.conf` and reload the
+configuration file. You also need to increase the number of workers
+after you apply the changes.
+
 ### As a library
 
 TODO...
