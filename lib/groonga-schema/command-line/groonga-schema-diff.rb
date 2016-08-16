@@ -82,6 +82,9 @@ module GroongaSchema
           parser.on_command do |command|
             schema.apply_command(command)
           end
+          parser.on_load_value do |command,|
+            command.original_source.clear
+          end
           resource.each_line do |line|
             parser << line
           end
