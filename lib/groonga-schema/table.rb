@@ -81,12 +81,11 @@ module GroongaSchema
       else
         sorted_columns = @columns.sort_by(&:name)
         sorted_columns.each do |column|
+          next if column.type == :index
           new_column = Column.new(new_name, column.name)
           new_column.apply_column(column)
           commands << new_column.to_create_groonga_command
-          unless column.type == :index
-            commands << column.to_copy_groonga_command(new_name, column.name)
-          end
+          commands << column.to_copy_groonga_command(new_name, column.name)
         end
       end
       commands << table_rename_command(@name, old_name)
@@ -95,9 +94,14 @@ module GroongaSchema
     end
 
     def to_migrate_finish_groonga_commands
-      [
-        table_remove_command(old_name),
-      ]
+      commands = []
+      sorted_columns = @columns.sort_by(&:name)
+      sorted_columns.each do |column|
+        next unless column.type == :index
+        commands << column.to_create_groonga_command
+      end
+      commands << table_remove_command(old_name)
+      commands
     end
 
     private

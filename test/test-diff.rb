@@ -373,12 +373,6 @@ table_create \\
   --normalizer "NormalizerAuto" \\
   --token_filters "TokenFilterStopWord|TokenFilterStem"
 column_create \\
-  --flags "COLUMN_INDEX|WITH_POSITION" \\
-  --name "commands_description" \\
-  --source "description" \\
-  --table "Words_new" \\
-  --type "Commands"
-column_create \\
   --flags "COLUMN_SCALAR" \\
   --name "weight" \\
   --table "Words_new" \\
@@ -429,6 +423,12 @@ table_rename \\
 table_remove \\
   --name "Names_old"
 
+column_create \\
+  --flags "COLUMN_INDEX|WITH_POSITION" \\
+  --name "commands_description" \\
+  --source "description" \\
+  --table "Words" \\
+  --type "Commands"
 table_remove \\
   --name "Words_old"
 
