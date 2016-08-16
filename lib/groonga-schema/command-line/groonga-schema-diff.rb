@@ -15,6 +15,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 require "optparse"
+require "uri"
+require "open-uri"
 
 require "groonga/command/parser"
 
@@ -37,8 +39,8 @@ module GroongaSchema
       def run
         parse_arguments
 
-        from_schema = parse_schema(@from_path)
-        to_schema = parse_schema(@to_path)
+        from_schema = parse_schema(@from)
+        to_schema = parse_schema(@to)
         differ = GroongaSchema::Differ.new(from_schema, to_schema)
         diff = differ.diff
         $stdout.print(diff.to_groonga_command_list(:format => @format))
@@ -70,21 +72,39 @@ module GroongaSchema
           $stderr.puts(parser.help)
           exit(false)
         end
-        @from_path, @to_path = rest_args
+        @from, @to = rest_args
       end
 
-      def parse_schema(path)
-        File.open(path) do |file|
+      def parse_schema(resource_path)
+        open_resource(resource_path) do |resource|
           schema = GroongaSchema::Schema.new
           parser = Groonga::Command::Parser.new
           parser.on_command do |command|
             schema.apply_command(command)
           end
-          file.each_line do |line|
+          resource.each_line do |line|
             parser << line
           end
           parser.finish
           schema
+        end
+      end
+
+      def open_resource(resource_path)
+        uri = nil
+        begin
+          uri = URI.parse(resource_path)
+        rescue URI::InvalidURIError
+        end
+
+        if uri and uri.respond_to?(:open)
+          uri.open do |response|
+            yield(response)
+          end
+        else
+          File.open(resource_path) do |file|
+            yield(file)
+          end
         end
       end
     end
